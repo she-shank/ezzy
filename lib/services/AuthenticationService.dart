@@ -1,0 +1,98 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:ezzy/ServiceLocator.dart';
+import 'package:ezzy/datamodel/EndUser.dart';
+import 'dart:async';
+
+import 'package:ezzy/services/DatabaseService.dart';
+
+class AuthenticationService {
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final DatabaseService _db = locator<DatabaseService>();
+
+  // variable for the viewmodels to instantly access data(CustomUser) of current
+  // user loggedin
+  EndUser _currentUser;
+
+  //getter function to access the private variable _currentUser
+  EndUser get currentUser => _currentUser;
+
+  // Function for instantiating the _currentUser variable upon login, signup or
+  // at startup
+  Future _populateCurrentUser(User user) async {
+    if (user != null) {
+      _currentUser = await _db.getEndUser(user.uid);
+    }
+  }
+
+  // function to check whether user is logged in or not at startup, if user is
+  // logged in then populate the _currentUser variable and return a bool value
+  // depending on the result
+  Future<bool> isUserLoggedIn() async {
+    var user = await auth.currentUser;
+    print(user!=null);
+    await _populateCurrentUser(user);
+    return user != null;
+  }
+
+  // function to login. returns bool value according to the condition     ssa
+  // (authResult.user != null) and if error occurs the returns the error me^ge
+  Future loginWithEmail(
+      {@required String email, @required String password}) async {
+    try {
+      var authResult = await auth.signInWithEmailAndPassword(
+          email: email, password: password);
+      await _populateCurrentUser(authResult.user);
+      return authResult.user != null; //return true if condition is true
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  // function to signup. Signsup, calls function to create user document to store
+  // user data in firestore collection
+  Future signUpWithEmail(
+      {@required String email,
+        @required String password,
+        @required String username}) async {
+    try {
+      var authResult = await auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+      await _db.createEndUser(EndUser.fromMap({
+        'UID': auth.currentUser.uid,
+        'profilePhotoURL': "null",
+        'username': username,
+        'followerCount': 0,
+        'followingCount': 0,
+      }));
+      await _populateCurrentUser(authResult.user);
+      print(authResult.user != null);
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  Future<User> googleSignIn() async {
+    try {
+      GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
+      GoogleSignInAuthentication googleSignInAuth =
+      await googleSignInAccount.authentication;
+
+      final AuthCredential authCredential = GoogleAuthProvider.credential(
+          idToken: googleSignInAuth.idToken,
+          accessToken: googleSignInAuth.accessToken);
+
+      User user = (await auth.signInWithCredential(authCredential)).user;
+      return user;
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  Future<void> signOut() {
+    return auth.signOut();
+  }
+}
