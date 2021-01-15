@@ -10,42 +10,57 @@ import '../../ServiceLocator.dart';
 class HomefeedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-
     return ViewModelBuilder<HomefeedViewModel>.reactive(
-        builder: (context, model, child) => Scaffold(
+      builder: (context, model, child) => Scaffold(
           appBar: AppBar(
             title: Text("Homefeed"),
           ),
-          body: Column(
-            children: [
-              ListView.builder(
-                itemCount: postTag.values.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (BuildContext context, int index) {
-                  return GestureDetector(
-                    onTap: () => model.handleTagResponse(index),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 2),
-                        child: Container(
-                          color: Colors.grey,
-                          padding: EdgeInsets.all(20),
-                          child: Text(postTag.values[index].toString()),
-                        ),
-                      ),
-                    ),
-                  );
-                }
-              ),
-              IndexedStack(
-                index: model.currentIndex,
-                children: model.PostListViewWidgetList,
-              )
-            ],
-          )
-        ),
-        viewModelBuilder: () => HomefeedViewModel()
+          body: Container(
+            child: Column(
+              children: [
+                Flexible(
+                  flex: 0,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                              children: postTag.values
+                                  .asMap()
+                                  .entries
+                                  .map((e) => GestureDetector(
+                                        onTap: () =>
+                                            model.handleTagResponse(e.key),
+                                        child: Align(
+                                          alignment: Alignment.topCenter,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 0, horizontal: 2),
+                                            child: Container(
+                                              color: Colors.grey,
+                                              padding: EdgeInsets.all(20),
+                                              child: Text(tagToString(e.value)),
+                                            ),
+                                          ),
+                                        ),
+                                      ))
+                                  .toList())),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: IndexedStack(
+                    index: model.currentIndex,
+                    children: model.postListViewWidgetList,
+                  ),
+                )
+              ],
+            ),
+          )),
+      viewModelBuilder: () => HomefeedViewModel(),
+      onModelReady: (model) => model.initializeLists(),
     );
   }
 }

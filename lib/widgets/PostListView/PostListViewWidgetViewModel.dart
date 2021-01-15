@@ -18,13 +18,14 @@ class PostListViewWidgetViewModel extends BaseViewModel {
   List<Post> _posts = [];
   get posts => _posts;
 
-  void subscribeToPostsStream(){
+  void subscribeToPostsStream()async {
     _db.postsListener(tag).listen((postData) {
       if(postData!=null){
         _posts.addAll(postData);
         notifyListeners();
       }
     });
+    requestMorePosts(tag);
   }
 
   void requestMorePosts(postTag tag) => _db.getPostsPaginated(tag);

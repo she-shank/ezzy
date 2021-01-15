@@ -1,7 +1,10 @@
 enum postTag{
-  food,
-  electronics,
-  clothing,
+  Food,
+  Electronics,
+  Clothing,
+  Services,
+  HealthCare,
+
 }
 
 String tagToString (Object o) => o.toString().split('.').last;

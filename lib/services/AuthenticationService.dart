@@ -70,7 +70,7 @@ class AuthenticationService {
       await _populateCurrentUser(authResult.user);
       print(authResult.user != null);
     } catch (e) {
-      print(e.toString());
+      return e.toString();
     }
   }
 

@@ -25,6 +25,19 @@ class DatabaseService {
     }
   }
 
+  Future createSecondUser(SecondUser SecondUser) async {
+    try {
+      await _db.collection('secondUsers').doc(SecondUser.userID).set(SecondUser.toMap());
+      await _db.collection('secondUsers/${SecondUser.userID}/AdditionalDetails')
+          .doc('Follower')
+          .set({'FollowerUID': []});
+      print("createUser Success");
+    } catch (e) {
+      print("createUser fail");
+      print(e.toString());
+    }
+  }
+
   Future getSecondUser(String UID) async {
     try {
       return await _db.collection('secondUsers')
@@ -109,7 +122,6 @@ class DatabaseService {
 
   Stream postsListener(postTag tag) {
     // Register the handler for when the posts data changes
-    getPostsPaginated(tag);
     return _postController.stream;
   }
 

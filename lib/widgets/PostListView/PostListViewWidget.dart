@@ -17,10 +17,18 @@ class PostListViewWidget extends StatefulWidget {
 
 class PostListViewWidgetState extends State<PostListViewWidget> {
 
+  PostListViewWidgetViewModel viewModel;
+
+
+
   @override
   void initState() {
+    viewModel = locator<PostListViewWidgetViewModel>(param1: widget.tag);
     // TODO: implement initState
     super.initState();
+  }
+  void handleSubscription(){
+    viewModel.subscribeToPostsStream();
   }
 
 
@@ -28,21 +36,18 @@ class PostListViewWidgetState extends State<PostListViewWidget> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<PostListViewWidgetViewModel>.reactive(
       builder: (context, model, child) {
-        return Container(
-          child: ListView.builder(
-              itemCount: model.posts.length,
-              itemBuilder: (context, index) {
-                return CreationAwareWidget(
-                  onWidgetCreated: () {
-                    if (index % 20 == 0) model.requestMorePosts(widget.tag);
-                  },
-                  child: PostListItem(post: model.posts[index]),
-                );
-              }),
-        );
+        return ListView.builder(
+            itemCount: model.posts.length,
+            itemBuilder: (context, index) {
+              return CreationAwareWidget(
+                onWidgetCreated: () {
+                  if (index % 20 == 0) model.requestMorePosts(widget.tag);
+                },
+                child: PostListItem(post: model.posts[index]),
+              );
+            });
       },
-      viewModelBuilder: () => locator<PostListViewWidgetViewModel>(param1: widget.tag),
-      onModelReady: (model) => model.subscribeToPostsStream(),
+      viewModelBuilder: () => viewModel,
     );
   }
 }

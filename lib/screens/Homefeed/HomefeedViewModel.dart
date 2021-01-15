@@ -5,25 +5,35 @@ import 'package:stacked/stacked.dart';
 import 'package:ezzy/ServiceLocator.dart';
 import 'package:ezzy/services/DatabaseService.dart';
 import 'package:ezzy/services/NavigationService.dart';
-import 'package:ezzy/services/CloudStorageService.dart';
-import 'package:ezzy/datamodel/Post.dart';
 
-
-class HomefeedViewModel extends BaseViewModel{
+class HomefeedViewModel extends BaseViewModel {
   final DatabaseService _db = locator<DatabaseService>();
   final NavigationService _nav = locator<NavigationService>();
   int currentIndex = 0;
 
-  var PostListViewWidgetKeyList = List.generate(postTag.values.length, (_) => GlobalKey<PostListViewWidgetState>());
-  var PostListViwWidgetList = List.generate(postTag.values.length, (i) => PostListViewWidget(tag: postTag.values[i], key: PostListViewWidgetKeyList[i],));
-  List<PostListViewWidget> PostListViewWidgetList = [];
-  int i = 0;
+  var postListViewWidgetList;
+  var postListViewWidgetKeyList;
+  var dataFetched;
 
-  
-
+  initializeLists() {
+    postListViewWidgetKeyList = List.generate(
+        postTag.values.length, (_) => GlobalKey<PostListViewWidgetState>());
+    dataFetched =
+        List.generate(postTag.values.length, (i) => i == 0 ? true : false);
+    postListViewWidgetList = List.generate(
+        postTag.values.length,
+        (i) => PostListViewWidget(
+              key: postListViewWidgetKeyList[i],
+              tag: postTag.values[i],
+            ));
+  }
 
   handleTagResponse(int index) {
     currentIndex = index;
+    if (!dataFetched[index]) {
+      dataFetched[index] = !dataFetched[index];
+      postListViewWidgetKeyList[index].currentState.handleSubscription();
+    }
     print(currentIndex);
     notifyListeners();
   }
